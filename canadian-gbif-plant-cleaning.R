@@ -1,4 +1,4 @@
-1# Project: GLANSIS Canadian Herbaria Data Cleaning
+# Project: GLANSIS Canadian Herbaria Data Cleaning
 
 # Project Description: Publicly available Canadian Herbarium GBIF datasets were 
 # cleaned to fill in spatial gaps in invasive species Canadian data in the Great 
@@ -394,8 +394,8 @@ for (i in seq_along(data_without_gps)) {
 gl_phragmites_points = list()
 for (i in seq_along(gl_points)) {
   tryCatch({
-    gl_phragmites_points[[i]] <- subset_phragmite_function(gl_points[[i]])
-    gl_points[[i]] <- subset_non_phragmite_function(gl_points[[i]])
+    gl_phragmites_points[[i]] <- subset.phragmite.function(gl_points[[i]])
+    gl_points[[i]] <- subset.non.phragmite.function(gl_points[[i]])
     cat("Processed dataframe", i, "\n")
   }, error = function(e) {
     cat("Error processing dataframe", i, ": ", conditionMessage(e), "\n")
@@ -414,28 +414,28 @@ data_without_gps_phragmites <- Filter(function(x) nrow(x) > 0, data_without_gps_
 # export to Excel
 for (i in seq_along(gl_points)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("invasive-species-data/output-", gl_points[[i]]$rightsHolder[1], ".xlsx", sep = "")
+    file_name <- paste("invasive-species-data/output-", gl_points[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(gl_points[[i]], path = file_name)
   }
 }
 
 for (i in seq_along(gl_phragmites_points)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("phragmites-data/output-", gl_phragmites_points[[i]]$rightsHolder[1], ".xlsx", sep = "")
+    file_name <- paste("phragmites-data/output-", gl_phragmites_points[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(gl_phragmites_points[[i]], path = file_name)
   }
 }
 
 for (i in seq_along(data_without_gps)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("invasive-species-data/no-gps-output-", data_without_gps[[i]]$rightsHolder[1], ".xlsx", sep = "")
+    file_name <- paste("invasive-species-data/no-gps-output-", data_without_gps[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(data_without_gps[[i]], path = file_name)
   }
 }
 
 for (i in seq_along(data_without_gps_phragmites)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("phragmites-data/no-gps-output-", data_without_gps_phragmites[[i]]$rightsHolder[1], ".xlsx", sep = "")
+    file_name <- paste("phragmites-data/no-gps-output-", data_without_gps_phragmites[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(data_without_gps_phragmites[[i]], path = file_name)
   }
 }
