@@ -23,7 +23,9 @@ library(sf)
 library(ggplot2)
 library(gridExtra)
 library(kableExtra)
+library(data.table)
 library(writexl)
+
 
 # GBIF Initial Data Download ----
 # This only needs to be run once to download GBIF datasets
@@ -343,7 +345,7 @@ plot_list <- lapply(non_empty_gl_points, function(points) {
 grid.arrange(grobs = plot_list, ncol = 2, nrow = ceiling(length(plot_list)/2))
 
 
-# report table
+# report dataset table
 info_df <- data.frame(Dataset = character(), Publisher = character(), Records = integer())
 
 for (i in seq_along(non_empty_gl_points)) {
@@ -361,6 +363,22 @@ info_df <- rbind(info_df, data.frame(Dataset = 'Total', Publisher = "", Records 
 info_df %>%
   kbl() %>%
   kable_classic(full_width = F, html_font = "Cambria")
+
+# report species table
+non_empty_gl_points <- lapply(non_empty_gl_points, function(df) {
+  df[] <- lapply(df, as.character)
+  return(df)
+})
+
+gl_records_df <- rbindlist(non_empty_gl_points, fill = TRUE)
+
+frequency_table <- gl_records_df %>%
+  count(scientificName)
+
+frequency_table %>%
+  kbl() %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
 
 
 # Separate Phragmites australis Occurrences ----
@@ -403,7 +421,7 @@ for (i in seq_along(gl_points)) {
 }
 
 
-# Export to Excel Files ----
+# Export to Individual Datasets to Excel Files ----
 
 # remove empty elements from gl_points
 gl_points <- Filter(function(x) nrow(x) > 0, gl_points)
@@ -421,7 +439,7 @@ for (i in seq_along(gl_points)) {
 
 for (i in seq_along(gl_phragmites_points)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("phragmites-data/output-", gl_phragmites_points[[i]]$datasetName[1], ".xlsx", sep = "")
+    file_name <- paste("phragmites-data/output-phragmites-", gl_phragmites_points[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(gl_phragmites_points[[i]], path = file_name)
   }
 }
@@ -435,8 +453,50 @@ for (i in seq_along(data_without_gps)) {
 
 for (i in seq_along(data_without_gps_phragmites)) {
   if (nrow(gl_points[[i]]) > 0) {
-    file_name <- paste("phragmites-data/no-gps-output-", data_without_gps_phragmites[[i]]$datasetName[1], ".xlsx", sep = "")
+    file_name <- paste("phragmites-data/no-gps-output-phragmites-", data_without_gps_phragmites[[i]]$datasetName[1], ".xlsx", sep = "")
     write_xlsx(data_without_gps_phragmites[[i]], path = file_name)
   }
 }
+
+
+# Merge Files and Export to Excel ----
+
+# Great Lakes invasive plants records
+gl_points <- lapply(gl_points, function(df) {
+  df[] <- lapply(df, as.character)
+  return(df)
+})
+
+gl_points_df = bind_rows(gl_points, fill = TRUE)
+write_xlsx(gl_points_df, "invasive-species-data/output.xlsx")
+
+
+# Invasive plant records with no coordinates
+data_without_gps <- lapply(data_without_gps, function(df) {
+  df[] <- lapply(df, as.character)
+  return(df)
+})
+
+data_without_gps_df = bind_rows(data_without_gps)
+write_xlsx(data_without_gps_df, "invasive-species-data/no-gps-output.xlsx")
+
+
+# Great Lakes Phragmites australis records
+gl_phragmites_points <- lapply(gl_phragmites_points, function(df) {
+  df[] <- lapply(df, as.character)
+  return(df)
+})
+
+gl_phragmites_points_df = bind_rows(gl_phragmites_points)
+write_xlsx(gl_phragmites_points, "phragmites-data/output-phragmites.xlsx")
+
+
+# Phragmites australis records with no coordinates
+data_without_gps_phragmites<- lapply(data_without_gps_phragmites, function(df) {
+  df[] <- lapply(df, as.character)
+  return(df)
+})
+
+data_without_gps_phragmites_df = bind_rows(data_without_gps_phragmites)
+write_xlsx(data_without_gps_phragmites_df, "phragmites-data/no-gps-output-phragmites.xlsx")
 
